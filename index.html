@@ -224,16 +224,22 @@
       Sin compromiso, con café si vienes a vernos.</p>
 
     <form class="contact-form" id="contact-form">
+      <input type="hidden" name="access_key" value="e546fea4-e5ac-44fe-a958-a0c1cff73670">
+      <input type="hidden" name="subject" value="Nueva consulta desde la web de Orinoco & Ebro">
+      <input type="hidden" name="from_name" value="Formulario web - Orinoco & Ebro">
+      <input type="hidden" name="cc" value="deabreuevamari@gmail.com">
+      <input type="checkbox" name="botcheck" style="display:none">
       <div class="row">
-        <input type="text" id="c-name" placeholder="Tu nombre" required>
-        <input type="text" id="c-company" placeholder="Tu empresa (opcional)">
+        <input type="text" id="c-name" name="name" placeholder="Tu nombre" required>
+        <input type="text" id="c-company" name="company" placeholder="Tu empresa (opcional)">
       </div>
-      <input type="email" id="c-email" placeholder="Tu email" required style="margin-bottom:16px;">
-      <textarea id="c-message" placeholder="¿En qué te podemos ayudar? Cuéntanos si es tema de finanzas o de personas." required></textarea>
-      <button type="submit">Enviar mensaje →</button>
+      <input type="email" id="c-email" name="email" placeholder="Tu email" required style="margin-bottom:16px;">
+      <textarea id="c-message" name="message" placeholder="¿En qué te podemos ayudar? Cuéntanos si es tema de finanzas o de personas." required></textarea>
+      <button type="submit" id="c-submit">Enviar mensaje →</button>
+      <p id="c-result" style="margin-top:14px; font-weight:600;"></p>
     </form>
 
-    <p class="contact-note">Al enviar se abrirá tu programa de correo con el mensaje listo para nosotras.</p>
+    <p class="contact-note">El mensaje llega directo a nuestro correo, sin depender de tu programa de email.</p>
     <p class="contact-cities">Barcelona · Madrid · Online</p>
   </div>
 </section>
@@ -245,14 +251,40 @@
 </footer>
 
 <script>
-document.getElementById('contact-form').addEventListener('submit', function (e) {
+const contactForm = document.getElementById('contact-form');
+const contactResult = document.getElementById('c-result');
+const contactSubmit = document.getElementById('c-submit');
+contactForm.addEventListener('submit', function (e) {
   e.preventDefault();
-  var name = document.getElementById('c-name').value;
-  var company = document.getElementById('c-company').value;
-  var email = document.getElementById('c-email').value;
-  var message = document.getElementById('c-message').value;
-  var body = 'Nombre: ' + name + (company ? '\nEmpresa: ' + company : '') + '\nEmail: ' + email + '\n\n' + message;
-  window.location.href = 'mailto:irene.bayon.torres@gmail.com,deabreuevamari@gmail.com?subject=' + encodeURIComponent('Primera consulta gratis - ' + name) + '&body=' + encodeURIComponent(body);
+  contactSubmit.disabled = true;
+  contactSubmit.textContent = 'Enviando...';
+  contactResult.textContent = '';
+  const formData = new FormData(contactForm);
+  const payload = Object.fromEntries(formData);
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      if (data.success) {
+        contactResult.style.color = '#2c6674';
+        contactResult.textContent = 'Gracias, hemos recibido tu mensaje. Te contestaremos muy pronto.';
+        contactForm.reset();
+      } else {
+        contactResult.style.color = '#8b4a35';
+        contactResult.textContent = 'Ha habido un error enviando el mensaje. Escríbenos directamente a irene.bayon.torres@gmail.com';
+      }
+    })
+    .catch(function () {
+      contactResult.style.color = '#8b4a35';
+      contactResult.textContent = 'Ha habido un error enviando el mensaje. Escríbenos directamente a irene.bayon.torres@gmail.com';
+    })
+    .finally(function () {
+      contactSubmit.disabled = false;
+      contactSubmit.textContent = 'Enviar mensaje →';
+    });
 });
 </script>
 
